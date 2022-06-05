@@ -120,6 +120,8 @@ class DumpCommand(AbsCommand):
                     elif len(f'{output} {sentence}') < twitchUtils.getMaxMessageSize():
                         output = f'{output} {sentence}'
                     else:
+                        output = output.strip()
+
                         if output.endswith('.') or output.endswith('?') or output.endswith('!'):
                             output = output[0:len(output) - 1]
 
