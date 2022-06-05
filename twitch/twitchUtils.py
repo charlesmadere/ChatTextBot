@@ -21,7 +21,7 @@ async def safeSend(
         raise ValueError(f'perMessageMaxSize argument is malformed: \"{perMessageMaxSize}\"')
     elif perMessageMaxSize < 300:
         raise ValueError(f'perMessageMaxSize is too small: {perMessageMaxSize}')
-    elif perMessageMaxSize >= getMaxMessageSize():
+    elif perMessageMaxSize > getMaxMessageSize():
         raise ValueError(f'perMessageMaxSize is too big: {perMessageMaxSize} (max size is {getMaxMessageSize()})')
     elif not utils.isValidNum(maxMessages):
         raise ValueError(f'maxMessages argument is malformed: \"{maxMessages}\"')
