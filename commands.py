@@ -54,7 +54,6 @@ class DumpCommand(AbsCommand):
         async with aiofile.AIOFile(fileName, 'r') as file:
             async for line in aiofile.LineReader(file):
                 lineNumber = lineNumber + 1
-                self.__timber.log('DumpCommand', f'Reading in line number {lineNumber}...')
 
                 cleanedSplits = utils.getCleanedSplits(line)
                 if not utils.hasItems(cleanedSplits):
@@ -65,8 +64,10 @@ class DumpCommand(AbsCommand):
                 splits.extend(cleanedSplits)
                 bufferIndex = bufferIndex + 1
 
-                if bufferIndex < bufferSize:
+                if bufferIndex < bufferSize and utils.hasItems(splits):
                     continue
+
+                self.__timber.log('DumpCommand', f'Buffer now filled at line number {lineNumber}')
 
                 bufferIndex = 0
                 joinedSplits = ' '.join(splits)
