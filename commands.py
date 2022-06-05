@@ -109,7 +109,7 @@ class DumpCommand(AbsCommand):
                     additionalLine = await self.__getAdditionalLine()
 
                     if utils.isValidStr(additionalLine):
-                        sentences.insert(0, additionalLine)
+                        sentences.insert(int(len(sentences) / 2), additionalLine)
                         self.__timber.log('DumpCommand', f'Added line: \"{additionalLine}\"')
 
                 output: str = ''
