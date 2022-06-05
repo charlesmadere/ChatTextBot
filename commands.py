@@ -64,7 +64,7 @@ class DumpCommand(AbsCommand):
                 splits.extend(cleanedSplits)
                 bufferIndex = bufferIndex + 1
 
-                if bufferIndex < bufferSize and utils.hasItems(splits):
+                if bufferIndex < self.__bufferSize or not utils.hasItems(splits):
                     continue
 
                 self.__timber.log('DumpCommand', f'Buffer now filled at line number {lineNumber}')
