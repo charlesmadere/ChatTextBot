@@ -1,6 +1,7 @@
 import os
+import random
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Set
 
 import aiofile
 import nltk.data
@@ -51,7 +52,7 @@ class DumpCommand(AbsCommand):
         discardedLines: int = 0
 
         async with aiofile.AIOFile(fileName, 'r') as file:
-            async for line in aiofile.LineReader(file):                
+            async for line in aiofile.LineReader(file):
                 lineNumber = lineNumber + 1
                 self.__timber.log('DumpCommand', f'Reading in line number {lineNumber}...')
 
@@ -73,7 +74,26 @@ class DumpCommand(AbsCommand):
 
                 parsed: List[str] = tokenizer.tokenize(joinedSplits)
 
+                if random.random() < 0.01:
+                    additionalRngLines = await self.__readAdditionalLines()
+
+                    if utils.hasItems(additionalRngLines):
+                        parsed.append(random.choice(additionalRngLines))
+
                 for sentence in parsed:
                     await twitchUtils.safeSend(ctx, sentence)
 
         self.__timber.log('DumpCommand', f'From \"{fileName}\", {readLines} line(s) were sent, and {discardedLines} line(s) were discarded.')
+
+    async def __readAdditionalLines(self):
+        if not os.path.exists('additionalLines.txt'):
+            return list()
+
+        additionalLines: Set[str] = set()
+
+        async with aiofile.AIOFile('additionalLines.txt', 'r') as file:
+            async for line in aiofile.LineReader(file):
+                if utils.isValidStr(line):
+                    additionalLines.add(line)
+
+        return list(additionalLines)
