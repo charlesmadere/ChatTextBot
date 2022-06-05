@@ -3,6 +3,7 @@ from typing import List
 
 import CynanBotCommon.utils as utils
 from twitchio.abcs import Messageable
+from twitchio.errors import IRCCooldownError
 
 
 def getMaxMessageSize() -> int:
@@ -60,7 +61,11 @@ async def safeSend(
         raise RuntimeError(f'This message is too long and won\'t be sent (len is {len(message)}):\n{message}')
 
     for m in messages:
-        await messageable.send(m)
+        try:
+            await messageable.send(m)
+        except IRCCooldownError:
+            await asyncio.sleep(32)
+            await messageable.send(m)
 
 async def waitThenSend(
     messageable: Messageable,
