@@ -25,14 +25,14 @@ class DumpCommand(AbsCommand):
     def __init__(
         self,
         timber: Timber,
-        bufferSize: int = 128,
+        bufferSize: int = 512,
         dumpSettingsFile: str = 'dumpSettings.json'
     ):
         if timber is None:
             raise ValueError(f'timber argument is malformed: \"{timber}\"')
         elif not utils.isValidNum(bufferSize):
             raise ValueError(f'bufferSize argument is malformed: \"{bufferSize}\"')
-        elif bufferSize < 64 or bufferSize > 2048:
+        elif bufferSize < 64 or bufferSize > 4096:
             raise ValueError(f'bufferSize argument is out of bounds: {bufferSize}')
         elif not utils.isValidStr(dumpSettingsFile):
             raise ValueError(f'dumpSettingsFile argument is malformed: \"{dumpSettingsFile}\"')
