@@ -43,15 +43,23 @@ class DumpCommand(AbsCommand):
 
         lines: int = 0
         discardedLines: int = 0
+        thisLine: str = ''
 
         async with aiofile.AIOFile(fileName, 'r') as file:
             async for line in aiofile.LineReader(file):
                 if utils.isValidStr(line):
                     lines = lines + 1
-                    try:
+                    cleanedSplits = utils.getCleanedSplits(line)
+                    cleanedLine = ' '.join(cleanedSplits)
+
+                    if utils.isValidStr(thisLine):
+                        thisLine = f'{thisLine} {cleanedLine}'
+                    else:
+                        thisLine = cleanedLine
+
+                    if len(thisLine) >= twitchUtils.getMaxMessageSize():
                         await twitchUtils.safeSend(ctx, line)
-                    except:
-                        await asyncio.sleep(45)
+                        thisLine = ''
                 else:
                     discardedLines = discardedLines + 1
 

@@ -7,13 +7,13 @@ from twitchio.errors import IRCCooldownError
 
 
 def getMaxMessageSize() -> int:
-    return 50000
+    return 500
 
 async def safeSend(
     messageable: Messageable,
     message: str,
-    perMessageMaxSize: int = 450,
-    maxMessages: int = 3
+    perMessageMaxSize: int = 500,
+    maxMessages: int = 5
 ):
     if messageable is None:
         raise ValueError(f'messageable argument is malformed: \"{messageable}\"')
