@@ -12,7 +12,7 @@ def getMaxMessageSize() -> int:
 async def safeSend(
     messageable: Messageable,
     message: str,
-    perMessageMaxSize: int = 500,
+    perMessageMaxSize: int = 450,
     maxMessages: int = 5
 ):
     if messageable is None:
