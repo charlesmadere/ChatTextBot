@@ -21,11 +21,24 @@ class AbsCommand(ABC):
 
 class DumpCommand(AbsCommand):
 
-    def __init__(self, timber: Timber):
+    def __init__(
+        self,
+        timber: Timber,
+        bufferSize: int = 100,
+        additionalLinesFile: str = 'additionalLines.txt'
+    ):
         if timber is None:
             raise ValueError(f'timber argument is malformed: \"{timber}\"')
+        elif not utils.isValidNum(bufferSize):
+            raise ValueError(f'bufferSize argument is malformed: \"{bufferSize}\"')
+        elif bufferSize < 64 or bufferSize > 2048:
+            raise ValueError(f'bufferSize argument is out of bounds: {bufferSize}')
+        elif not utils.isValidStr(additionalLinesFile):
+            raise ValueError(f'additionalLinesFile argument is malformed: \"{additionalLinesFile}\"')
 
         self.__timber: Timber = timber
+        self.__bufferSize: int = bufferSize
+        self.__additionalLinesFile: str = additionalLinesFile
 
     async def handleCommand(self, ctx: Context):
         if not ctx.author.is_mod or ctx.author.name.lower() != ctx.channel.name.lower():
@@ -45,7 +58,6 @@ class DumpCommand(AbsCommand):
             return
 
         tokenizer = nltk.data.load('nltk:tokenizers/punkt/english.pickle')
-        bufferSize: int = 100
         bufferIndex: int = 0
         lineNumber: int = -1
         readLines: int = 0
@@ -89,14 +101,14 @@ class DumpCommand(AbsCommand):
         self.__timber.log('DumpCommand', f'From \"{fileName}\", {readLines} line(s) were sent, and {discardedLines} line(s) were discarded.')
 
     async def __readAdditionalLines(self):
-        if not os.path.exists('additionalLines.txt'):
+        if not os.path.exists(self.__additionalLinesFile):
             return list()
 
         additionalLines: Set[str] = set()
 
-        async with aiofile.AIOFile('additionalLines.txt', 'r') as file:
+        async with aiofile.AIOFile(self.__additionalLinesFile, 'r') as file:
             async for line in aiofile.LineReader(file):
                 if utils.isValidStr(line):
-                    additionalLines.add(line)
+                    additionalLines.add(line.strip())
 
         return list(additionalLines)
