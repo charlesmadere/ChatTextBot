@@ -78,7 +78,9 @@ class DumpCommand(AbsCommand):
                     additionalRngLines = await self.__readAdditionalLines()
 
                     if utils.hasItems(additionalRngLines):
-                        parsed.append(random.choice(additionalRngLines))
+                        additionalRngLine = random.choice(additionalRngLines)
+                        parsed.append(additionalRngLine)
+                        self.__timber.log('DumpCommand', f'Added RNG line: \"{additionalRngLine}\"')
 
                 for sentence in parsed:
                     await twitchUtils.safeSend(ctx, sentence)
