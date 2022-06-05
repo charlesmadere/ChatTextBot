@@ -13,7 +13,8 @@ async def safeSend(
     messageable: Messageable,
     message: str,
     perMessageMaxSize: int = 450,
-    maxMessages: int = 5
+    maxMessages: int = 5,
+    sleepTimeSeconds: int = 40
 ):
     if messageable is None:
         raise ValueError(f'messageable argument is malformed: \"{messageable}\"')
@@ -25,8 +26,12 @@ async def safeSend(
         raise ValueError(f'perMessageMaxSize is too big: {perMessageMaxSize} (max size is {getMaxMessageSize()})')
     elif not utils.isValidNum(maxMessages):
         raise ValueError(f'maxMessages argument is malformed: \"{maxMessages}\"')
-    elif maxMessages < 1 or maxMessages > 5:
+    elif maxMessages < 1:
         raise ValueError(f'maxMessages is out of bounds: {maxMessages}')
+    elif not utils.isValidNum(sleepTimeSeconds):
+        raise ValueError(f'sleepTimeSeconds is malformed: \"{sleepTimeSeconds}\"')
+    elif sleepTimeSeconds < 40:
+        raise ValueError(f'sleepTimeSeconds is out of bounds: {sleepTimeSeconds}')
 
     if not utils.isValidStr(message):
         return
@@ -64,7 +69,7 @@ async def safeSend(
         try:
             await messageable.send(m)
         except:
-            await asyncio.sleep(45)
+            await asyncio.sleep(sleepTimeSeconds)
             await messageable.send(m)
 
 async def waitThenSend(

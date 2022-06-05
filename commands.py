@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 import aiofile
+import nltk.data
 from twitchio.ext.commands import Context
 
 import CynanBotCommon.utils as utils
@@ -34,36 +35,45 @@ class DumpCommand(AbsCommand):
             return
 
         fileName = splits[1]
+        splits.clear()
+
         self.__timber.log('DumpCommand', f'Preparing to read in \"{fileName}\"...')
 
         if not os.path.exists(fileName):
             self.__timber.log('DumpCommand', f'\"{fileName}\" does not exist!')
             return
 
-        lines: int = 0
+        tokenizer = nltk.data.load('nltk:tokenizers/punkt/english.pickle')
+        bufferSize: int = 100
+        bufferIndex: int = 0
         lineNumber: int = -1
+        readLines: int = 0
         discardedLines: int = 0
-        splits: List[str] = list()
 
         async with aiofile.AIOFile(fileName, 'r') as file:
             async for line in aiofile.LineReader(file):                
                 lineNumber = lineNumber + 1
                 self.__timber.log('DumpCommand', f'Reading in line number {lineNumber}...')
 
-                if not utils.isValidStr(line):
+                cleanedSplits = utils.getCleanedSplits(line)
+                if not utils.hasItems(cleanedSplits):
                     discardedLines = discardedLines + 1
                     continue
 
-                cleanedSplits = utils.getCleanedSplits(line)
-                if not utils.hasItems(cleanedSplits):
+                readLines = readLines + 1
+                splits.extend(cleanedSplits)
+                bufferIndex = bufferIndex + 1
+
+                if bufferIndex < bufferSize:
                     continue
 
-                lines = lines + 1
-                splits.extend(cleanedSplits)
-                cleanedLine = ' '.join(splits)
+                bufferIndex = 0
+                joinedSplits = ' '.join(splits)
+                splits.clear()
 
-                if len(cleanedLine) >= twitchUtils.getMaxMessageSize() * 2:
-                    await twitchUtils.safeSend(ctx, cleanedLine)
-                    splits.clear()
+                parsed: List[str] = tokenizer.tokenize(joinedSplits)
 
-        self.__timber.log('DumpCommand', f'From \"{fileName}\", {lines} line(s) were sent, and {discardedLines} line(s) were discarded.')
+                for sentence in parsed:
+                    await twitchUtils.safeSend(ctx, sentence)
+
+        self.__timber.log('DumpCommand', f'From \"{fileName}\", {readLines} line(s) were sent, and {discardedLines} line(s) were discarded.')
