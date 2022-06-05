@@ -112,8 +112,19 @@ class DumpCommand(AbsCommand):
                         sentences.append(additionalLine)
                         self.__timber.log('DumpCommand', f'Added line: \"{additionalLine}\"')
 
+                output: str = ''
+
                 for sentence in sentences:
-                    await twitchUtils.safeSend(ctx, sentence)
+                    if len(output) == 0:
+                        output = sentence
+                    elif len(f'{output} {sentence}') < twitchUtils.getMaxMessageSize():
+                        output = f'{output} {sentence}'
+                    else:
+                        if output.endswith('.') or output.endswith('?') or output.endswith('!'):
+                            output = output[0:len(output) - 1]
+
+                        await twitchUtils.safeSend(ctx, sentence)
+                        output = ''
 
         self.__timber.log('DumpCommand', f'From \"{fileName}\", {readLines} line(s) were sent, and {discardedLines} line(s) were discarded.')
 
