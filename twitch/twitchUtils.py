@@ -14,7 +14,7 @@ async def safeSend(
     message: str,
     perMessageMaxSize: int = 450,
     maxMessages: int = 5,
-    sleepTimeSeconds: int = 45
+    sleepTimeSeconds: int = 32
 ):
     if messageable is None:
         raise ValueError(f'messageable argument is malformed: \"{messageable}\"')
@@ -30,7 +30,7 @@ async def safeSend(
         raise ValueError(f'maxMessages is out of bounds: {maxMessages}')
     elif not utils.isValidNum(sleepTimeSeconds):
         raise ValueError(f'sleepTimeSeconds is malformed: \"{sleepTimeSeconds}\"')
-    elif sleepTimeSeconds < 45:
+    elif sleepTimeSeconds < 32:
         raise ValueError(f'sleepTimeSeconds is out of bounds: {sleepTimeSeconds}')
 
     if not utils.isValidStr(message):
