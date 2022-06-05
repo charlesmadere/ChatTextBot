@@ -20,7 +20,7 @@ class ChatTextBot(commands.Bot):
     ):
         super().__init__(
             client_secret = authRepository.requireTwitchClientSecret(),
-            users = authRepository.requireTwitchChannels(),
+            initial_channels = authRepository.requireTwitchChannels(),
             loop = eventLoop,
             nick = authRepository.requireNick(),
             prefix = '!',
