@@ -37,7 +37,12 @@ async def safeSend(
         return
 
     if len(message) < getMaxMessageSize():
-        await messageable.send(message)
+        try:
+            await messageable.send(message)
+        except:
+            await asyncio.sleep(sleepTimeSeconds)
+            await messageable.send(message)
+
         return
 
     messages: List[str] = list()
