@@ -125,8 +125,11 @@ class DumpCommand(AbsCommand):
                         if output.endswith('.') or output.endswith('?') or output.endswith('!'):
                             output = output[0:len(output) - 1]
 
-                        await twitchUtils.safeSend(ctx, sentence)
+                        await twitchUtils.safeSend(ctx, output)
                         output = ''
+
+                if len(output) >= 1:
+                    await twitchUtils.safeSend(ctx, output)
 
         self.__timber.log('DumpCommand', f'From \"{fileName}\", {readLines} line(s) were sent, and {discardedLines} line(s) were discarded.')
 
