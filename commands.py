@@ -103,8 +103,9 @@ class DumpCommand(AbsCommand):
                 splits.clear()
 
                 sentences: List[str] = tokenizer.tokenize(joinedSplits)
+                additionalLineChance = await self.__getAdditionalLineChance()
 
-                if random.random() <= self.__getAdditionalLineChance():
+                if random.random() <= additionalLineChance:
                     additionalLine = await self.__getAdditionalLine()
 
                     if utils.isValidStr(additionalLine):
