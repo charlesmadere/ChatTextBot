@@ -32,7 +32,7 @@ class DumpCommand(AbsCommand):
         if len(splits) < 2:
             return
 
-        fileName = splits[2]
+        fileName = splits[1]
         self.__timber.log('DumpCommand', f'Preparing to read in \"{fileName}\"...')
 
         if not os.path.exists(fileName):
