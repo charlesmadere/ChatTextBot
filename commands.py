@@ -1,7 +1,6 @@
-import asyncio
 import os
 from abc import ABC, abstractmethod
-from asyncio import AbstractEventLoop
+from typing import List
 
 import aiofile
 from twitchio.ext.commands import Context
@@ -43,24 +42,21 @@ class DumpCommand(AbsCommand):
 
         lines: int = 0
         discardedLines: int = 0
-        thisLine: str = ''
+        splits: List[str] = list()
 
         async with aiofile.AIOFile(fileName, 'r') as file:
             async for line in aiofile.LineReader(file):
-                if utils.isValidStr(line):
-                    lines = lines + 1
-                    cleanedSplits = utils.getCleanedSplits(line)
-                    cleanedLine = ' '.join(cleanedSplits)
-
-                    if utils.isValidStr(thisLine):
-                        thisLine = f'{thisLine} {cleanedLine}'
-                    else:
-                        thisLine = cleanedLine
-
-                    if len(thisLine) >= twitchUtils.getMaxMessageSize():
-                        await twitchUtils.safeSend(ctx, line)
-                        thisLine = ''
-                else:
+                if not utils.isValidStr(line):
                     discardedLines = discardedLines + 1
+                    continue
+
+                lines = lines + 1
+                cleanedSplits = utils.getCleanedSplits(line)
+                splits.extend(cleanedSplits)
+                cleanedLine = ' '.join(cleanedSplits)
+
+                if len(cleanedLine) >= twitchUtils.getMaxMessageSize():
+                    await twitchUtils.safeSend(ctx, cleanedLine)
+                    splits.clear()
 
         self.__timber.log('DumpCommand', f'From \"{fileName}\", {lines} line(s) were sent, and {discardedLines} line(s) were discarded.')
