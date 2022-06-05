@@ -60,7 +60,7 @@ class DumpCommand(AbsCommand):
 
                 lines = lines + 1
                 splits.extend(cleanedSplits)
-                cleanedLine = ' '.join(cleanedSplits)
+                cleanedLine = ' '.join(splits)
 
                 if len(cleanedLine) >= twitchUtils.getMaxMessageSize():
                     await twitchUtils.safeSend(ctx, cleanedLine)
