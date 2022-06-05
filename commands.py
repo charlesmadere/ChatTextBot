@@ -41,11 +41,15 @@ class DumpCommand(AbsCommand):
             return
 
         lines: int = 0
+        lineNumber: int = -1
         discardedLines: int = 0
         splits: List[str] = list()
 
         async with aiofile.AIOFile(fileName, 'r') as file:
-            async for line in aiofile.LineReader(file):
+            async for line in aiofile.LineReader(file):                
+                lineNumber = lineNumber + 1
+                self.__timber.log('DumpCommand', f'Reading in line number {lineNumber}...')
+
                 if not utils.isValidStr(line):
                     discardedLines = discardedLines + 1
                     continue
