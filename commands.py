@@ -1,5 +1,7 @@
+import asyncio
 import os
 from abc import ABC, abstractmethod
+from asyncio import AbstractEventLoop
 
 import aiofile
 from twitchio.ext.commands import Context
@@ -46,7 +48,10 @@ class DumpCommand(AbsCommand):
             async for line in aiofile.LineReader(file):
                 if utils.isValidStr(line):
                     lines = lines + 1
-                    await twitchUtils.safeSend(ctx, line)
+                    try:
+                        await twitchUtils.safeSend(ctx, line)
+                    except:
+                        await asyncio.sleep(45)
                 else:
                     discardedLines = discardedLines + 1
 

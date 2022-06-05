@@ -63,8 +63,8 @@ async def safeSend(
     for m in messages:
         try:
             await messageable.send(m)
-        except (Exception, IRCCooldownError):
-            await asyncio.sleep(32)
+        except:
+            await asyncio.sleep(45)
             await messageable.send(m)
 
 async def waitThenSend(
