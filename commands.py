@@ -50,8 +50,11 @@ class DumpCommand(AbsCommand):
                     discardedLines = discardedLines + 1
                     continue
 
-                lines = lines + 1
                 cleanedSplits = utils.getCleanedSplits(line)
+                if not utils.hasItems(cleanedSplits):
+                    continue
+
+                lines = lines + 1
                 splits.extend(cleanedSplits)
                 cleanedLine = ' '.join(cleanedSplits)
 
