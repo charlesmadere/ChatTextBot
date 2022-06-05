@@ -74,7 +74,7 @@ class DumpCommand(AbsCommand):
 
                 parsed: List[str] = tokenizer.tokenize(joinedSplits)
 
-                if random.random() < 0.01:
+                if random.random() <= 0.02:
                     additionalRngLines = await self.__readAdditionalLines()
 
                     if utils.hasItems(additionalRngLines):
