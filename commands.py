@@ -1,7 +1,8 @@
+import json
 import os
 import random
 from abc import ABC, abstractmethod
-from typing import List, Set
+from typing import Dict, List, Set
 
 import aiofile
 import nltk.data
@@ -24,8 +25,8 @@ class DumpCommand(AbsCommand):
     def __init__(
         self,
         timber: Timber,
-        bufferSize: int = 100,
-        additionalLinesFile: str = 'additionalLines.txt'
+        bufferSize: int = 128,
+        dumpSettingsFile: str = 'dumpSettings.json'
     ):
         if timber is None:
             raise ValueError(f'timber argument is malformed: \"{timber}\"')
@@ -33,12 +34,28 @@ class DumpCommand(AbsCommand):
             raise ValueError(f'bufferSize argument is malformed: \"{bufferSize}\"')
         elif bufferSize < 64 or bufferSize > 2048:
             raise ValueError(f'bufferSize argument is out of bounds: {bufferSize}')
-        elif not utils.isValidStr(additionalLinesFile):
-            raise ValueError(f'additionalLinesFile argument is malformed: \"{additionalLinesFile}\"')
+        elif not utils.isValidStr(dumpSettingsFile):
+            raise ValueError(f'dumpSettingsFile argument is malformed: \"{dumpSettingsFile}\"')
 
         self.__timber: Timber = timber
         self.__bufferSize: int = bufferSize
-        self.__additionalLinesFile: str = additionalLinesFile
+        self.__dumpSettingsFile: str = dumpSettingsFile
+
+    async def __getAdditionalLine(self) -> str:
+        additionalLines = await self.__readAdditionalLines()
+
+        if utils.hasItems(additionalLines):
+            return random.choice(additionalLines)
+        else:
+            return None
+
+    async def __getAdditionalLineChance(self) -> float:
+        jsonContents = await self.__readJson()
+        return utils.getFloatFromDict(jsonContents, 'additionalLineChance', 0.02)
+
+    async def __getAdditionalLinesFile(self) -> str:
+        jsonContents = await self.__readJson()
+        return utils.getStrFromDict(jsonContents, 'additionalLinesFile', 'additionalLines.txt')
 
     async def handleCommand(self, ctx: Context):
         if not ctx.author.is_mod or ctx.author.name.lower() != ctx.channel.name.lower():
@@ -79,36 +96,51 @@ class DumpCommand(AbsCommand):
                 if bufferIndex < self.__bufferSize or not utils.hasItems(splits):
                     continue
 
-                self.__timber.log('DumpCommand', f'Buffer now filled at line number {lineNumber}')
+                self.__timber.log('DumpCommand', f'Buffer is now filled at line number {lineNumber}')
 
                 bufferIndex = 0
                 joinedSplits = ' '.join(splits)
                 splits.clear()
 
-                parsed: List[str] = tokenizer.tokenize(joinedSplits)
+                sentences: List[str] = tokenizer.tokenize(joinedSplits)
 
-                if random.random() <= 0.02:
-                    additionalRngLines = await self.__readAdditionalLines()
+                if random.random() <= self.__getAdditionalLineChance():
+                    additionalLine = await self.__getAdditionalLine()
 
-                    if utils.hasItems(additionalRngLines):
-                        additionalRngLine = random.choice(additionalRngLines)
-                        parsed.append(additionalRngLine)
-                        self.__timber.log('DumpCommand', f'Added RNG line: \"{additionalRngLine}\"')
+                    if utils.isValidStr(additionalLine):
+                        sentences.append(additionalLine)
+                        self.__timber.log('DumpCommand', f'Added line: \"{additionalLine}\"')
 
-                for sentence in parsed:
+                for sentence in sentences:
                     await twitchUtils.safeSend(ctx, sentence)
 
         self.__timber.log('DumpCommand', f'From \"{fileName}\", {readLines} line(s) were sent, and {discardedLines} line(s) were discarded.')
 
     async def __readAdditionalLines(self):
-        if not os.path.exists(self.__additionalLinesFile):
+        additionalLinesFile = await self.__getAdditionalLinesFile()
+
+        if not os.path.exists(additionalLinesFile):
             return list()
 
         additionalLines: Set[str] = set()
 
-        async with aiofile.AIOFile(self.__additionalLinesFile, 'r') as file:
+        async with aiofile.AIOFile(additionalLinesFile, 'r') as file:
             async for line in aiofile.LineReader(file):
                 if utils.isValidStr(line):
                     additionalLines.add(line.strip())
 
         return list(additionalLines)
+
+    async def __readJson(self) -> Dict[str, object]:
+        if not os.path.exists(self.__dumpSettingsFile):
+            raise FileNotFoundError(f'Dump settings file not found: \"{self.__dumpSettingsFile}\"')
+
+        with open(self.__dumpSettingsFile, 'r') as file:
+            jsonContents = json.load(file)
+
+        if jsonContents is None:
+            raise IOError(f'Error reading from dump settings file: \"{self.__dumpSettingsFile}\"')
+        elif len(jsonContents) == 0:
+            raise ValueError(f'JSON contents of dump settings file \"{self.__dumpSettingsFile}\" is empty')
+
+        return jsonContents
